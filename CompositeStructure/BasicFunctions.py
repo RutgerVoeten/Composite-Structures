@@ -3,138 +3,168 @@
 import numpy as np
 from numpy import cos, sin, pi
 
-def CalcABD(stack,E1,E2,v12,v21,G12, t, fails = {}, degrade = {}, minreal = True):
-    r"""
-    Calculate the ABD matrix of a composite laminate and Q matrices for each lamina
-    
-    **Rutger Voeten 4973682 25-03-2021**
-
-    Parameters
-    ----------
-    Stack: Sequence of angles starting from lowest to highest (original sequence without failure).
-    E1: Axial Stiffness of lamina.
-    E2: Transverse Stiffness of lamina.
-    v12: Poisson ratio.
-    v21: Transverse Poisson's Ratio.
-    G12: Shear stiffness.
-    t: Thickness of each lamina, constant thickness for each lamina is assumed.
-    Optional fails: Dictionary that keeps track which ply.
-    Optional degrade: Dictionary that keeps track which ply has to be degraded.
-
-    Returns
-    -------
-    ABD Matrix, Q matrix for each lamina, stack dictionary for failure envelope
+class ABDMatrix:
     """
-    z = np.arange(-len(stack)/2 * t, len(stack)/2*t+t/2,t)
-    
-    stack = dict(zip(np.arange(1, len(stack)+1),stack))
-    
-    Axx = 0
-    Axy = 0
-    Ayy = 0
-    Axs = 0
-    Ays = 0
-    Ass = 0
-    Axs = 0
-    
-    
-    Dxx = 0
-    Dxy = 0
-    Dxs = 0
-    Dyy = 0
-    Dys = 0
-    Dxs = 0
-    Dys = 0
-    Dxx = 0
-    Dss = 0
-    
-    Bxx = 0
-    Bxy = 0
-    Bxs = 0
-    Byy = 0
-    Bys = 0
-    Bss = 0
-    
-    def mf(phi):
-        return np.cos(phi)
-    
-    def nf(phi):
-        return np.sin(phi)
-    
-    Qmats = {}
-    
-    for m in fails:
-        del stack[m]
-    
+    A class used to evaluate the properties of the ABD matrix of a composite laminate
+    ...
 
-    for k in stack:
-        
-        if k in degrade:
-            E2 = E2*degrade[k]
-            G12 = G12*degrade[k]
-            
-        #Defining constants
-        #For plane stress conditions
-        Q = 1 - v12*v21
-        Q11 = E1 * Q**-1
-        Q22 = E2*Q**-1
-        Q12 = v12*E2*Q**-1
-        Q66 = G12
-        Q21 = Q12
-        
-        phi = stack[k]*np.pi/180
-        
-        m = mf(phi)
-        n = nf(phi)
-        
-        #Calculate QMatrix properties
-        
-        Qxx = Q11*m**4 + 2*(Q12+ 2*Q66)*m**2*n**2 + Q22*n**4
-        Qxy = (Q11 + Q22 - 4*Q66)*m**2*n**2 + Q12*(m**4+n**4)
-        Qyy = Q11*n**4 + 2*(Q12 + 2*Q66)*m**2*n**2 + Q22*m**4
-        Qxs = (Q11 - Q12 - 2*Q66)*n*m**3 + (Q12-Q22+2*Q66)*n**3*m
-        Qys = (Q11-Q12-2*Q66)*m*n**3+(Q12-Q22+2*Q66)*m**3*n
-        Qss = (Q11 + Q22 -2*Q12 - 2*Q66)*n**2*m**2 + Q66*(n**4 + m**4)
-        
-        Qmat = np.array([[Qxx,Qxy,Qxs],[Qxy,Qyy,Qys],[Qxs,Qys,Qss]])
-        
-        
-        Qmats[k] = Qmat
-            
-        d1 = (z[k] - z[k-1])
-        d2 = (z[k]**2 - z[k-1]**2)
-        d3 = (z[k]**3 - z[k-1]**3)
-        
-        Axx = Axx + Qxx * d1
-        Axy = Axy + Qxy * d1
-        Ayy = Ayy + Qyy * d1
-        Axs = Axs + Qxs * d1
-        Ays = Ays + Qys * d1
-        Ass = Ass + Qss * d1
-    
-        Dxx = Dxx + 1/3*Qxx * d3
-        Dxy = Dxy + 1/3*Qxy * d3
-        Dxs = Dxs + 1/3*Qxs * d3
-        Dyy = Dyy + 1/3*Qyy * d3
-        Dys = Dys + 1/3*Qys * d3
-        Dss = Dss + 1/3*Qss * d3
-        
-        Bxx = Bxx + 1/2*Qxx * d2
-        Bxy = Bxy + 1/2*Qxy * d2
-        Bxs = Bxs + 1/2*Qxs * d2
-        Byy = Byy + 1/2*Qyy * d2
-        Bys = Bys + 1/2*Qys * d2
-        Bss = Bss + 1/2*Qss * d2
-        
-    
-    abdmat = np.array([[Axx,Axy,Axs,Bxx,Bxy,Bxs], [Axy,Ayy,Ays,Bxy,Byy,Bys],[Axs,Ays,Ass, Bxs, Bys, Bss],
-                    [Bxx, Bxy, Bxs, Dxx, Dxy, Dxs] ,[Bxy, Byy, Bys, Dxy, Dyy, Dys],[Bxs, Bys, Bss, Dxs, Dys, Dss]])
-    
-    #Remove rounding errors:
-    if minreal:
-        abdmat[np.where(np.abs(abdmat) < 1e-5)] = 0
+    """
+    def __init__(self, stack, E1, E2, v12, v21, G12, t, fails = {}, degrade = {}, minreal = True):
+        """
 
-    return abdmat,Qmats, stack
+        Parameters
+        ----------
+        stack : dict
+            a dictionary where each index has the corresponding angle in degrees
+        E1 : float
+            Stiffness of the ply on the first principle axis
+        E2 : float
+            Stiffness of the ply on the second principle axis
+        v12 : float
+            poisson ratio 12
+        v21 : float
+            poisson ratio 21 can be evaluated using v21 = E2 * v12/E1
+        G12 : float
+            Shear modulus of the ply in the 1-2 direction
+        t : float
+            Thickness of each ply
+        fails : dict (optional)
+            Dictionary of the plies which are completely failed
+        degrade : dict (optional)
+            Dictionary of the plies which are degraded in properties
+
+        Attributes
+        ----------
+        ABD : arr
+            ABD matrix
+
+        Qmats : dict
+            dictionary containing Q matrices for each ply
+
+        stack : dict
+            Returned stack excluding the failed plies
+
+        z : arr
+            z coordinates of original stacking sequence"""
+
+        self.CalcABD(stack, E1, E2, v12, v21, G12, t, fails = fails, degrade = degrade, minreal = minreal)
+
+
+    def CalcABD(self, stack, E1, E2, v12, v21, G12, t, fails = {}, degrade = {}, minreal = True):
+
+        z = np.arange(-len(stack)/2 * t, len(stack)/2*t+t/2,t)
+
+        Axx = 0
+        Axy = 0
+        Ayy = 0
+        Axs = 0
+        Ays = 0
+        Ass = 0
+        Axs = 0
+
+
+        Dxx = 0
+        Dxy = 0
+        Dxs = 0
+        Dyy = 0
+        Dys = 0
+        Dxs = 0
+        Dys = 0
+        Dxx = 0
+        Dss = 0
+
+        Bxx = 0
+        Bxy = 0
+        Bxs = 0
+        Byy = 0
+        Bys = 0
+        Bss = 0
+
+        def mf(phi):
+            return np.cos(phi)
+
+        def nf(phi):
+            return np.sin(phi)
+
+        self.Qmats = {}
+
+        for m in fails:
+            del stack[m]
+
+
+        for k in stack:
+
+            if k in degrade:
+                E2 = E2*degrade[k]
+                G12 = G12*degrade[k]
+
+            #Defining constants
+            #For plane stress conditions
+            Q = 1 - v12*v21
+            Q11 = E1 * Q**-1
+            Q22 = E2*Q**-1
+            Q12 = v12*E2*Q**-1
+            Q66 = G12
+            Q21 = Q12
+
+            phi = stack[k]*np.pi/180
+
+            m = mf(phi)
+            n = nf(phi)
+
+            #Calculate QMatrix properties
+
+            Qxx = Q11*m**4 + 2*(Q12+ 2*Q66)*m**2*n**2 + Q22*n**4
+            Qxy = (Q11 + Q22 - 4*Q66)*m**2*n**2 + Q12*(m**4+n**4)
+            Qyy = Q11*n**4 + 2*(Q12 + 2*Q66)*m**2*n**2 + Q22*m**4
+            Qxs = (Q11 - Q12 - 2*Q66)*n*m**3 + (Q12-Q22+2*Q66)*n**3*m
+            Qys = (Q11-Q12-2*Q66)*m*n**3+(Q12-Q22+2*Q66)*m**3*n
+            Qss = (Q11 + Q22 -2*Q12 - 2*Q66)*n**2*m**2 + Q66*(n**4 + m**4)
+
+            Qmat = np.array([[Qxx,Qxy,Qxs],[Qxy,Qyy,Qys],[Qxs,Qys,Qss]])
+
+
+            self.Qmats[k] = Qmat
+
+            d1 = (z[k] - z[k-1])
+            d2 = (z[k]**2 - z[k-1]**2)
+            d3 = (z[k]**3 - z[k-1]**3)
+
+            Axx = Axx + Qxx * d1
+            Axy = Axy + Qxy * d1
+            Ayy = Ayy + Qyy * d1
+            Axs = Axs + Qxs * d1
+            Ays = Ays + Qys * d1
+            Ass = Ass + Qss * d1
+
+            Dxx = Dxx + 1/3*Qxx * d3
+            Dxy = Dxy + 1/3*Qxy * d3
+            Dxs = Dxs + 1/3*Qxs * d3
+            Dyy = Dyy + 1/3*Qyy * d3
+            Dys = Dys + 1/3*Qys * d3
+            Dss = Dss + 1/3*Qss * d3
+
+            Bxx = Bxx + 1/2*Qxx * d2
+            Bxy = Bxy + 1/2*Qxy * d2
+            Bxs = Bxs + 1/2*Qxs * d2
+            Byy = Byy + 1/2*Qyy * d2
+            Bys = Bys + 1/2*Qys * d2
+            Bss = Bss + 1/2*Qss * d2
+
+
+        self.ABD = np.array([[Axx,Axy,Axs,Bxx,Bxy,Bxs], [Axy,Ayy,Ays,Bxy,Byy,Bys],[Axs,Ays,Ass, Bxs, Bys, Bss],
+                        [Bxx, Bxy, Bxs, Dxx, Dxy, Dxs] ,[Bxy, Byy, Bys, Dxy, Dyy, Dys],[Bxs, Bys, Bss, Dxs, Dys, Dss]])
+
+        #Remove rounding errors:
+        if minreal:
+            self.ABD[np.where(np.abs(self.ABD) < 1e-5)] = 0
+
+        # Stack excluding failed plies
+        self.stack = stack
+
+        # Z coordinates including failed plies
+        self.z = z
+
 
 def CalcFPF(dNx, stackor, stackdict, props, ABD, Qmats):
     r''' Calculate first ply failure due to axial stress '''
