@@ -9,7 +9,7 @@ class ABDMatrix:
     ...
 
     """
-    def __init__(self, stack, E1, E2, v12, v21, G12, t, fails = {}, degrade = {}, minreal = True):
+    def __init__(self, stack , MaterialProps, fails = {}, degrade = {}, minreal = True):
         """
 
         Parameters
@@ -46,6 +46,13 @@ class ABDMatrix:
 
         z : arr
             z coordinates of original stacking sequence"""
+
+        E1 = MaterialProps.E1
+        E2 = MaterialProps.E2
+        v12 = MaterialProps.v12
+        v21 = MaterialProps.v21
+        G12 = MaterialProps.G12
+        t = MaterialProps.t
 
         self.CalcABD(stack, E1, E2, v12, v21, G12, t, fails = fails, degrade = degrade, minreal = minreal)
 
@@ -164,6 +171,10 @@ class ABDMatrix:
 
         # Z coordinates including failed plies
         self.z = z
+
+def Createdictfromlist(stack):
+    stack = dict(zip(np.arange(1,len(stack)+1),stack))
+    return stack
 
 
 def CalcFPF(dNx, stackor, stackdict, props, ABD, Qmats):
