@@ -1,6 +1,6 @@
 import numpy as np
 
-class MaterialProperties:
+class Props:
     def __init__(self):
         """ Input the material properties of a composite lamina """
         self.E1 = 180e3
@@ -11,4 +11,7 @@ class MaterialProperties:
         self.t = 0.125
 
     def InputFile(self, file):
-        print(file)
+        #TODO Add the possibility to use an input file
+
+
+        return file
