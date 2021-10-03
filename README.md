@@ -12,7 +12,8 @@ Theory
 --------------------
 The theory is used of the book 'Design and Analysis of Composite Structures" from Christos Kassapoglou.
 
-![image](https://user-images.githubusercontent.com/68966235/135766472-07343430-a4ad-44d7-861b-542e8912faff.png)
+![image](https://user-images.githubusercontent.com/68966235/135766489-b71badfd-a4a6-47cf-9423-c3a583d458bb.png)
+
 
 Documentation
 -------------
@@ -20,7 +21,7 @@ Documentation
 
 License
 -------
-General GNU license
+GNU GENERAL PUBLIC LICENSE
 
 Contacts: 
 

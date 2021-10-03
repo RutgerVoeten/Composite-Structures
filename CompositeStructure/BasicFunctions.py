@@ -3,7 +3,6 @@
 import numpy as np
 from numpy import cos, sin, pi
 
-
 def CalcABD(stack,E1,E2,v12,v21,G12, t, fails = {}, degrade = {}, minreal = True):
     r"""
     Calculate the ABD matrix of a composite laminate and Q matrices for each lamina
