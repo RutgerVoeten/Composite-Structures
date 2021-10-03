@@ -11,5 +11,4 @@ stack = CompositeStructure.BasicFunctions.Createdictfromlist(stack)
 
 MaterialProperties = MP.Props()
 StiffnessMatrices = CompositeStructure.BasicFunctions.ABDMatrix(stack,MaterialProperties)
-##Test-2
 
