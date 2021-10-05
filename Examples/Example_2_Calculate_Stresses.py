@@ -22,4 +22,3 @@ force_vector = np.array([[100],
 
 Stresses = CompositeStructure.BasicFunctions.StressCalculations(StiffnessMatrices, MaterialProperties, force_vector)
 Stresses.plot_stresses()
-#Test
