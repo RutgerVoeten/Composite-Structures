@@ -4,6 +4,8 @@ Composite Structures
 Important features of this library
 ----------------------------------
 - ABD Matrix evaluation, stress calculation in each ply
+- Several failure criteria
+- Sandwhich panels/ Stiffened panels/ Stiffeners
 - Calculate structural properties of composite materials and members
 
 
