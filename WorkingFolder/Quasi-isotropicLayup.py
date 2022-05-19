@@ -3,7 +3,7 @@ import CompositeStructure.BasicFunctions
 
 MaterialProperties = MP.Props()
 
-stack = [45,-45,90,0,0,90,-45,45]
+stack = [0,0,-30,0,0,0]
 
 stack = CompositeStructure.BasicFunctions.Createdictfromlist(stack)
 

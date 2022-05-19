@@ -301,7 +301,7 @@ class StressCalculations:
             #Calculated stresses in principle direction
             Z_array, sigma, eps, Layer_stress, strains = self.StressCalc(stackor, stackdict, force_vector, ABD, Qmats, props['tply'])
             #Calculate if failure happened
-            failscount, ply_stress = failure(stackdict,Layer_stress,Qmats,props['Xt'],props['Yt'],props['Sxz'],props['Xc'],props['Yc'],props['vyx'],props['Gxy'],props['tply'])
+            failscount, ply_stress = self.failure(stackdict, Layer_stress, Qmats, props['Xt'], props['Yt'], props['Sxz'], props['Xc'], props['Yc'], props['vyx'], props['Gxy'], props['tply'])
             Nx += dNx
 
         sigmaXFPF = Nx/(len(stackdict)* props['tply'])
